@@ -1,49 +1,60 @@
 # SafeRAG
 
-**Evidence-grounded extractive retrieval with abstention**
+### Evidence-grounded retrieval
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB) ![Status](https://img.shields.io/badge/status-research%20prototype-64748b)
+![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Tests](https://github.com/rohanst14/SafeRAG/actions/workflows/tests.yml/badge.svg) ![Stage](https://img.shields.io/badge/stage-research%20prototype-64748b)
 
-## Overview
+Retrieve a supporting passage instead of inventing an answer when the corpus does not contain relevant evidence.
 
-Evidence-grounded extractive retrieval with abstention. This compact, dependency-free Python baseline is intended for reproducible experimentation and extension.
+## Design
 
-## Architecture
-
-```mermaid
-flowchart LR
-  N0["Question + corpus"] -->   N1["Token counts"] -->   N2["Cosine retrieval"] -->   N3["Threshold gate"] -->   N4["Evidence / abstention"]
-```
+Tokenize and count terms → rank by cosine similarity → apply threshold → return evidence or abstain.
 
 ## Quick start
 
 ```bash
 git clone https://github.com/rohanst14/SafeRAG.git
 cd SafeRAG
+python -m venv .venv
+# Activate .venv for your operating system.
 python -m pip install -e .
 python examples/demo.py
 python -m unittest discover -s tests -v
 ```
 
-## Example
+## Usage
 
 ```python
-from saferag import *
-result = answer('reactor pressure',{'manual':'reactor pressure rises','other':'ocean waves'})
+from saferag import answer
+result = answer('reactor pressure', {'manual': 'reactor pressure rises', 'other': 'ocean waves'})
 print(result)
 ```
 
-## Repository guide
+## API contract
 
-| Path | Purpose |
+| Field | Description |
 |---|---|
-| [src/saferag](src/saferag) | Core implementation |
-| [examples/demo.py](examples/demo.py) | Runnable synthetic demonstration |
-| [tests/test_core.py](tests/test_core.py) | Regression tests |
-| [docs/methodology.md](docs/methodology.md) | Method and limitations |
+| Entry point | `answer(question, documents, threshold=.2)` |
+| Inputs | A mapping from stable document IDs to text; threshold in [0,1]. |
+| Outputs | A verbatim passage, source ID, cosine score and abstention flag; no generated answer. |
 
-## Limitations
+## Repository map
 
-Lexical retrieval baseline; no generative model or semantic embedding. Similarity is not calibrated confidence.
+| Path | Role |
+|---|---|
+| [src/saferag/](src/saferag/) | Python implementation |
+| [examples/demo.py](examples/demo.py) | Reproducible synthetic demo |
+| [tests/test_core.py](tests/test_core.py) | Regression checks |
+| [docs/methodology.md](docs/methodology.md) | Evaluation design and limitations |
+| [ROADMAP.md](ROADMAP.md) | Milestones and planned work |
+| [CI workflow](.github/workflows/tests.yml) | Automated tests and demo |
 
-This is an AI-assisted portfolio prototype, not a production system or published scientific result.
+## Evaluation and limitations
+
+Compare coverage and retrieval precision on a labeled question–document corpus; tune threshold on a separate validation set.
+
+Lexical overlap is not entailment, semantic similarity or calibrated confidence. No LLM is invoked. The current demonstration is synthetic; no real-world performance claims are made.
+
+## Project status
+
+AI-assisted research prototype. See [roadmap](ROADMAP.md) for planned extensions.
